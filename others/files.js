@@ -1,10 +1,10 @@
 const fs = require('fs'); // fs stands for file system
 
 // read files
-// fs.readFile('./docs/doc2.text', (err, data) => { // asynchronous
-//   if (err) console.log(err);
-//   else console.log('data in file ->', data.toString());
-// })
+fs.readFile('./docs/doc2.text', (err, data) => { // asynchronous
+  if (err) console.log(err);
+  else console.log('data in file ->', data.toString());
+})
 
 
 // console.log('First log ->>');
@@ -13,9 +13,9 @@ const fs = require('fs'); // fs stands for file system
 // writing files
 // Why did execute writeFile() first?
 
-// fs.writeFile('./docs/doc1.text', 'Replace everything with this text in doc1.text file', () => {
-//   console.log('file was rewriten');
-// });
+fs.writeFile('./docs/doc1.text', 'Replace everything with this text in doc1.text file', () => {
+  console.log('file was rewriten');
+});
 
 
 
