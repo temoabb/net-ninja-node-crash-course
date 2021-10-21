@@ -19,15 +19,61 @@ app.use(morgan('dev'));
 
 
 // mongoose and mongo sandbox routes
-app.get('/add-blog', (req, res) => { // this is asynchrnous task. Takes some time
 
-  const blog = new Blog({
+
+
+
+
+// GET single blog
+// app.get('/single-blog', (req, res) => {
+//   Blog.findById("61716528facfc3912d003bb5")
+//     .then(response => {
+//       res.send(response)
+//     })
+//     .catch(error => console.log(error))
+// })
+
+
+// // GET all blogs
+// app.get('/all-blogs', (req, res) => {
+//   Blog.find() // this is NOT an instance of 'Blog'; This is 'Blog' directly
+//     .then(result => {
+//       res.send(result)
+//     })
+//     .catch(error => console.log(error))
+// }) // it is asyncshronous
+
+
+
+// listen requests
+app.get('/', (req, res) => {
+  res.redirect('/blogs');
+})
+
+
+app.get('/blogs', (req, res) => {
+  Blog.find().sort({ createdAt: -1 })
+    .then((result) => {
+      console.log('all blogs in \'blogs\' collection', typeof result, result);
+      res.render('index', { title: 'All Blogs', blogs: result })
+    })
+    .catch(err => console.log(err))
+})
+
+
+app.get('/about', (req, res) => {
+  res.render('about', { title: 'About' })
+})
+
+
+app.get('/add-blog', (req, res) => { // this is asynchrnous task. Takes some time
+  const blog = new Blog({ // this is an instance of 'Blog'
     title: 'new blog 2',
     snippet: 'about my new blog',
     body: 'more about my new blog',
   });
 
-  blog.save() // saving to collection; it returns us a promise
+  blog.save() // saving to collection; it returns us a promise, save() is an instance method; 'blog' is instance itself
     .then(result => {
       res.send(result);
     })
@@ -36,27 +82,16 @@ app.get('/add-blog', (req, res) => { // this is asynchrnous task. Takes some tim
     });
 })
 
-// listen requests
-app.get('/', (req, res) => {
-  const blogs = [
-    { title: 'Max Verstappen', snippet: 'lorem ipsum dolor sit amet' },
-    { title: 'Lewis Hamilton', snippet: 'lorem ipsum dolor sit amet' },
-    { title: 'Valteri Bottas', snippet: 'lorem ipsum dolor sit amet' },
-  ];
-  res.render('index', { title: 'Home', blogs: blogs });
-})
-
-app.get('/about', (req, res) => {
-  res.render('about', { title: 'About' })
-})
 
 app.get('/blogs/create', (req, res) => {
   res.render('create', { title: 'Create a new blog' });
 })
 
+
 app.use((req, res) => { // 404 page
   res.status(404).render('404', { title: '404' });
 })
+
 
 // This MUST be at the BOTTOM of the file, becasue:
 // use function is going to fire for every single request coming in but only if the request reaches this point in the code. i.e. none of above path matches user's entered path
