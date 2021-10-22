@@ -1,48 +1,17 @@
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
-
-// models
-const Blog = require('./models/blog');
-
 const app = express(); // <- it returns a function
 
+app.set('view engine', 'ejs'); // register view engine
+const Blog = require('./models/blog');
+const { response } = require('express');
 
-// register view engine
-app.set('view engine', 'ejs');
 
 // middleware & static files
 app.use(express.static('public')); // users have access to the files in 'public' folder (images, text files etc.)
-
-// console.log
 app.use(morgan('dev'));
-
-
-// mongoose and mongo sandbox routes
-
-
-
-
-
-// GET single blog
-// app.get('/single-blog', (req, res) => {
-//   Blog.findById("61716528facfc3912d003bb5")
-//     .then(response => {
-//       res.send(response)
-//     })
-//     .catch(error => console.log(error))
-// })
-
-
-// // GET all blogs
-// app.get('/all-blogs', (req, res) => {
-//   Blog.find() // this is NOT an instance of 'Blog'; This is 'Blog' directly
-//     .then(result => {
-//       res.send(result)
-//     })
-//     .catch(error => console.log(error))
-// }) // it is asyncshronous
-
+app.use(express.urlencoded({ extended: true }));
 
 
 // listen requests
@@ -51,21 +20,37 @@ app.get('/', (req, res) => {
 })
 
 
+// GET all blogs
 app.get('/blogs', (req, res) => {
   Blog.find().sort({ createdAt: -1 })
     .then((result) => {
-      console.log('all blogs in \'blogs\' collection', typeof result, result);
+      // console.log('all blogs in \'blogs\' collection', typeof result, result);
       res.render('index', { title: 'All Blogs', blogs: result })
     })
     .catch(err => console.log(err))
 })
 
 
+// POST new blog
+app.post('/blogs', (req, res) => {
+  const { title, snippet, body } = req.body;
+  const blog = new Blog({
+    title,
+    snippet,
+    body
+  })
+
+  blog.save()
+    .then(result => res.redirect('/blogs'))
+    .catch(err => console.log(err))
+})
+
+// GET about view
 app.get('/about', (req, res) => {
   res.render('about', { title: 'About' })
 })
 
-
+// GET add-blog view
 app.get('/add-blog', (req, res) => { // this is asynchrnous task. Takes some time
   const blog = new Blog({ // this is an instance of 'Blog'
     title: 'new blog 2',
@@ -82,9 +67,27 @@ app.get('/add-blog', (req, res) => { // this is asynchrnous task. Takes some tim
     });
 })
 
-
 app.get('/blogs/create', (req, res) => {
   res.render('create', { title: 'Create a new blog' });
+})
+
+// GET single blog
+app.get('/blogs/:id', (req, res) => {
+  // we write here 'req.params.id' because handler is '/blogs/:id'; If handler were '/blogs/:nuts' we would write: 'req.params.nuts' 
+  const id = req.params.id;
+  Blog.findById(id)
+    .then(response => res.render('details', { blog: response, title: 'Blog details' }))
+    .catch(err => res.render('404', { title: 'Couldn\'\t find user!' }))
+})
+
+
+app.delete('/blogs/:id', (req, res) => {
+  const id = req.params.id;
+  Blog.findByIdAndDelete(id)
+    .then(result => {
+      res.json({ redirect: '/blogs' });
+    })
+    .catch(err => console.log(err));
 })
 
 
@@ -105,33 +108,3 @@ mongoose.connect(databaseURI, { useNewUrlParser: true, useUnifiedTopology: true 
   .catch(error => console.log(error)); // this is asyncdhorous task
 
 // QUICK NOTE: mongoose is third party pakage. So, we have to install it: npm install mongoose
-
-
-
-
-
-// Function that runs after request is received and before response is sent, we call middleware:  req > middleware > res. These are all middlewares:
-
-// set() lets us configure some application settings; Now it knows that ejs is going to be used to create our templates. We need a place to create our different ejs views
-
-// When we send a request in the browser, if we type something and press enter, express is going to tun through this code TOP to BOTTOM to look at each of these get handlers (/, /about, /about-us)
-
-// If it finds a match, if the URL user has requested is matched any of these: /, /about, /about-us, then express fires callback function. 
-// And if it matches and if inside we SEND A RESPONSE TO THE BROWSER, then express no longer carries on DOWN THE REST OF THE CODE.
-
-
-// send() method Automatically infers content-type and status code, so we don't need these anymore:  
-// res.setHeader('Content-Type', 'text/html');   res.statusCode = 200;
-
-
-// res.sendFile('./views/about.html', { root: __dirname }) // C:\work\net-ninja-node
-// res.status(404).sendFile('./views/404.html', { root: __dirname });
-// res.sendFile('./views/index.html', { root: __dirname }); // C:\work\net-ninja-node
-
-
-
-// #### redirects
-// app.get('/about-us', (req, res) => {
-//   // res.redirect('/about'); // automatically sets the status code
-//   res.render('about');
-// })
