@@ -5,7 +5,6 @@ const Blog = require('../models/blog');
 
 const blog_index = (req, res) => {
   Blog.find().sort({ createdAt: -1 })
-    // console.log('all blogs in \'blogs\' collection', typeof result, result);
     .then(blogs => res.render('blogs/index', { title: 'All Blogs', blogs }))
     .catch(err => console.log(err))
 }
@@ -23,7 +22,7 @@ const blog_create_get = (req, res) => {
 
 const blog_create_post = (req, res) => {
   const blog = new Blog(req.body);
-  blog.save(blog)
+  blog.save()
     .then(response => res.redirect('/blogs'))
     .catch(err => console.log(err))
 };
